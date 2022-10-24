@@ -29,7 +29,7 @@ def build(package):
     os.remove('INFO')
     if 'makedeps' in pkgInfo:
         for d in pkgInfo['makedeps'].split():
-            os.system('ROOT=' + os.path.abspath(config['workdir']) + ' squirrel get ' + d + ' --no-index')
+            os.system('ROOT=' + os.path.abspath(config['workdir']) + ' squirrel get ' + d + ' --no-index -y')
 
     real_root = os.open("/", os.O_PATH)
     # Mount the filesystems
@@ -59,17 +59,18 @@ def build(package):
                         # and set chunk_size parameter to None.
                         #if chunk: 
                         f.write(chunk)
-        
         os.makedirs('work')
         os.makedirs('root')
+        print(os.listdir('.'))
         os.environ['PKG'] = os.path.abspath('./root')
         os.environ['MAKEFLAGS'] = "-j1"
         os.chdir('work')
-        os.system('XZ_OPTS=9 tar -xf ../' + pkgInfo['source'].split()[-1].split('/')[-1])
-
-        if len(os.listdir('.')) == 1:
+        print(os.listdir('..'))
+        cmd = 'tar -xf ../' + pkgInfo['source'].split()[-1].split('/')[-1]
+        out = os.system(cmd)
+        print(out)
+        if len(os.listdir('.')) <= 1:
             os.chdir(os.listdir('.')[0])
-
         out = os.system(pkgInfo['build'])
         if out != 0:
             print('ERROR:')
@@ -134,8 +135,8 @@ def readIndex(branch):
 
 def setup():
     os.chdir(config['workdir'])
-    dirsToCreate = ['etc', 'var', 'usr', 'usr/lib', 'usr/bin', 'usr/sbin', 'lib64']
-    linksToDo = {'bin': 'usr/bin', 'lib': 'usr/lib', 'sbin': 'usr/sbin'}
+    dirsToCreate = ['etc', 'dev', 'proc', 'sys', 'var', 'run', 'usr', 'tmp', 'usr/lib', 'usr/bin', 'usr/sbin']
+    linksToDo = {'bin': 'usr/bin', 'lib': 'usr/lib', 'sbin': 'usr/sbin', 'lib64': 'usr/lib'}
 
     for dir in dirsToCreate:
         os.makedirs(dir)
@@ -164,18 +165,26 @@ def setup():
         'perl',
         'python3',
         'texinfo',
-        'util-linux'
+        'util-linux',
+        'linux-api-headers'
     ]
 
+    fp = open('INDEX', 'w')
+    fp.close()
+
+    installedPkgs = []
     for package in chrootPackages:
-        os.system('ROOT=' + config['workdir'] + ' squirrel get ' + package + ' --no-index')
+        os.system('ROOT=' + config['workdir'] + ' squirrel get ' + package + ' --chroot=' + config['workdir'] + ' -y')
+        installedPkgs.append(package)
+    shutil.copy('/etc/hosts', config['workdir'] + '/etc/')
+    shutil.copy('/etc/resolv.conf', config['workdir'] + '/etc/')
+    shutil.copy('/etc/ssl/certs/ca-certificates.crt', config['workdir'] + '/etc/ssl/certs/')
 
     print('Successful setup.')
-    
-def sync(verbose=True):
-    os.chdir('/etc/sappy/store')
 
-    os.makedirs(config['release'], exist_ok=True)
+def sync(verbose=True):
+    os.makedirs('/etc/sappy/store/' + config['release'], exist_ok=True)
+    os.chdir('/etc/sappy/store')
     os.chdir(config['release'])
 
     for branch in config['branches']:
