@@ -136,7 +136,7 @@ def readIndex(branch):
 def setup():
     os.chdir(config['workdir'])
     dirsToCreate = ['etc', 'dev', 'proc', 'sys', 'var', 'run', 'usr', 'tmp', 'usr/lib', 'usr/bin', 'usr/sbin']
-    linksToDo = {'bin': 'usr/bin', 'lib': 'usr/lib', 'sbin': 'usr/sbin', 'lib64': 'usr/lib'}
+    linksToDo = {'bin': 'usr/bin', 'lib': 'usr/lib', 'sbin': 'usr/sbin', 'lib64': 'usr/lib', 'usr/lib64': 'lib'}
 
     for dir in dirsToCreate:
         os.makedirs(dir)
@@ -167,7 +167,8 @@ def setup():
         'texinfo',
         'util-linux',
         'linux-api-headers',
-        'gcc-lib-c++'
+        'gcc-lib-c++',
+        'zstd'
     ]
 
     fp = open('INDEX', 'w')
