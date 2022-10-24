@@ -166,7 +166,8 @@ def setup():
         'python3',
         'texinfo',
         'util-linux',
-        'linux-api-headers'
+        'linux-api-headers',
+        'gcc-lib-c++'
     ]
 
     fp = open('INDEX', 'w')
