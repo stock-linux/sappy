@@ -8,7 +8,7 @@
 # DESCRIPTION : Devloppement install script for Sappy
 #
 # BUGS : ---
-# NOTES : Not tested.
+# NOTES : Work
 # CONTRUBUTORS : Babilinx
 # CREATED : october 2022
 # REVISION: 25 october 2022
@@ -31,41 +31,48 @@ if [ "$EUID" -ne 0 ]; then
   exit
 fi
 
+read - p "What is your username ? " USERNAME
+
 echo "This install script is only for devs !"
 read -p "[Enter] to continue"
 
 echo "The folder <stocklinux> will be created at the root of your home folder"
-cd ~ && mkdir stocklinux && cd stocklinux
+mkdir stocklinux 
+cd stocklinux
 
 mkdir sappy-bin
 
 git clone https://github.com/stock-linux/squirrel.git && git clone https://github.com/stock-linux/sappy.git
 
-ln -s squirrel/squirrel /bin/ && ln -s sappy/sappy /bin/
+rm /bin/sappy && rm /bin/squirrel
 
-echo -e "#!/bin/sh\npython3 $PWD/sappy/main.py $@" | tee sappy/sappy
-echo -e "#!/bin/sh\npython3 $PWD/squirrel/main.py $@" | tee squirrel/squirrel
+ln -s $PWD/squirrel/squirrel /bin/ && ln -s $PWD/sappy/sappy /bin/
+
+echo -e "#!/bin/sh\npython3 $PWD/sappy/main.py \$@" > sappy/sappy
+echo -e "#!/bin/sh\npython3 $PWD/squirrel/main.py \$@" > squirrel/squirrel
 
 pip3 install docopt pyaml requests
 
 mkdir -p /etc/sappy/store
 
-echo 'host: 'stocklinux.hopto.org:8080'' | tee /etc/sappy/sappy.conf
-echo 'release: 'main'' | tee -a /etc/sappy/sappy.conf
-echo 'branches:' | tee -a /etc/sappy/sappy.conf
-echo '- main' | tee -a /etc/sappy/sappy.conf
-echo "workdir: $PWD/sappy-bin" | tee -a /etc/sappy/sappy.conf
-echo 'produceBinaries: true' | tee -a /etc/sappy/sappy.conf
+echo 'host: 'stocklinux.hopto.org:8080'' > /etc/sappy/sappy.conf
+echo 'release: 'main'' >> /etc/sappy/sappy.conf
+echo 'branches:' >> /etc/sappy/sappy.conf
+echo '- main' >> /etc/sappy/sappy.conf
+echo "workdir: $PWD/sappy-bin" >> /etc/sappy/sappy.conf
+echo 'produceBinaries: true' >> /etc/sappy/sappy.conf
 
 mkdir -p $PWD/squirrel/dev/etc/squirrel/ $PWD/squirrel/dev/var/squirrel/repos/dist/ $PWD/squirrel/dev/var/squirrel/repos/local/ $PWD/squirrel/dev/var/squirrel/repos/local/main/
 
-echo "configPath = '$PWD/squirrel/dev/etc/squirrel/'" | tee squirrel/utils/config.py
-echo "distPath = '$PWD/squirrel/dev/var/squirrel/repos/dist/'" | tee -a squirrel/utils/config.py
-echo "localPath = '$PWD/squirrel/dev/var/squirrel/repos/local/'" | tee -a squirrel/utils/config.py
+echo "configPath = '$PWD/squirrel/dev/etc/squirrel/'" > squirrel/utils/config.py
+echo "distPath = '$PWD/squirrel/dev/var/squirrel/repos/dist/'" >> squirrel/utils/config.py
+echo "localPath = '$PWD/squirrel/dev/var/squirrel/repos/local/'" >> squirrel/utils/config.py
 
-echo "main http://stocklinux.hopto.org:8080/main/main" | tee squirrel/dev/etc/squirrel/branches
+echo "main http://stocklinux.hopto.org:8080/main/main" >> squirrel/dev/etc/squirrel/branches
 
 touch $PWD/squirrel/dev/var/squirrel/repos/local/main/INDEX
+
+cd .. && chown -R $USERNAME:$USERNAME stocklinux/
 
 echo "Everything is configured !"
 
