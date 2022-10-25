@@ -46,7 +46,7 @@ ln -s squirrel/squirrel /bin/ && ln -s sappy/sappy /bin/
 echo -e "#!/bin/sh\npython3 $PWD/sappy/main.py $@" | tee sappy/sappy
 echo -e "#!/bin/sh\npython3 $PWD/squirrel/main.py $@" | tee squirrel/squirrel
 
-pip3 install docopt pyaml # one left
+pip3 install docopt pyaml requests
 
 mkdir -p /etc/sappy/store
 
