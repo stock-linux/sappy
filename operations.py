@@ -29,7 +29,7 @@ def build(package):
     os.remove('INFO')
     if 'makedeps' in pkgInfo:
         for d in pkgInfo['makedeps'].split():
-            os.system('ROOT=' + os.path.abspath(config['workdir']) + ' squirrel get ' + d + ' --no-index -y')
+            os.system('ROOT=' + os.path.abspath(config['workdir']) + ' squirrel get ' + d + ' --chroot=' + config['workdir'] + ' -y')
 
     real_root = os.open("/", os.O_PATH)
     # Mount the filesystems
