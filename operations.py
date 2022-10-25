@@ -1,4 +1,4 @@
-import os, yaml, requests, tempfile, shutil
+import os, yaml, requests, tempfile, shutil, sys
 from struct import pack
 
 def loadConfig(path):
@@ -136,12 +136,14 @@ def readIndex(branch):
 def setup():
     os.chdir(config['workdir'])
     dirsToCreate = ['etc', 'dev', 'proc', 'sys', 'var', 'run', 'usr', 'tmp', 'usr/lib', 'usr/bin', 'usr/sbin']
-    linksToDo = {'bin': 'usr/bin', 'lib': 'usr/lib', 'sbin': 'usr/sbin', 'lib64': 'usr/lib', 'usr/lib64': 'lib'}
-
+    linksToDo = {'bin': 'usr/bin', 'lib': 'usr/lib', 'sbin': 'usr/sbin', 'lib64': 'usr/lib', 'usr/lib64': 'lib', 'etc/mtab': '/proc/self/mounts'}
     for dir in dirsToCreate:
         os.makedirs(dir)
     for link in linksToDo:
         os.symlink(linksToDo[link], link)
+
+    shutil.copy(sys.path[0] + '/assets/group', 'etc/group')
+    shutil.copy(sys.path[0] + '/assets/passwd', 'etc/passwd')
 
     chrootPackages = [
         'binutils',
@@ -165,6 +167,7 @@ def setup():
         'perl',
         'python3',
         'texinfo',
+        'systemd',
         'util-linux',
         'linux-api-headers',
         'gcc-lib-c++',
