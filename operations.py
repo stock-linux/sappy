@@ -168,7 +168,8 @@ def setup():
         'util-linux',
         'linux-api-headers',
         'gcc-lib-c++',
-        'zstd'
+        'zstd',
+        'pkg-config'
     ]
 
     fp = open('INDEX', 'w')
