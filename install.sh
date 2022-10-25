@@ -37,6 +37,8 @@ read -p "[Enter] to continue"
 echo "The folder <stocklinux> will be created at the root of your home folder"
 cd ~ && mkdir stocklinux && cd stocklinux
 
+mkdir sappy-bin
+
 git clone https://github.com/stock-linux/squirrel.git && git clone https://github.com/stock-linux/sappy.git
 
 ln -s squirrel/squirrel /bin/ && ln -s sappy/sappy /bin/
@@ -46,10 +48,25 @@ echo -e "#!/bin/sh\npython3 $PWD/squirrel/main.py $@" | tee squirrel/squirrel
 
 pip3 install docopt pyaml # one left
 
-mkdir /etc/sappy \
-echo 'host: 'stocklinux.hopto.org:8080'
-release: 'main'
-branches:
-- main
-workdir: ${PWD}
-produceBinaries: true' | tee /etc/sappy/sappy.conf
+mkdir -p /etc/sappy/store
+
+echo 'host: 'stocklinux.hopto.org:8080'' | tee /etc/sappy/sappy.conf
+echo 'release: 'main'' | tee -a /etc/sappy/sappy.conf
+echo 'branches:' | tee -a /etc/sappy/sappy.conf
+echo '- main' | tee -a /etc/sappy/sappy.conf
+echo "workdir: $PWD/sappy-bin" | tee -a /etc/sappy/sappy.conf
+echo 'produceBinaries: true' | tee -a /etc/sappy/sappy.conf
+
+mkdir -p $PWD/squirrel/dev/etc/squirrel/ $PWD/squirrel/dev/var/squirrel/repos/dist/ $PWD/squirrel/dev/var/squirrel/repos/local/ $PWD/squirrel/dev/var/squirrel/repos/local/main/
+
+echo "configPath = '$PWD/squirrel/dev/etc/squirrel/'" | tee squirrel/utils/config.py
+echo "distPath = '$PWD/squirrel/dev/var/squirrel/repos/dist/'" | tee -a squirrel/utils/config.py
+echo "localPath = '$PWD/squirrel/dev/var/squirrel/repos/local/'" | tee -a squirrel/utils/config.py
+
+echo "main http://stocklinux.hopto.org:8080/main/main" | tee squirrel/dev/etc/squirrel/branches
+
+touch $PWD/squirrel/dev/var/squirrel/repos/local/main/INDEX
+
+echo "Everything is configured !"
+
+exit
