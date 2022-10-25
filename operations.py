@@ -42,6 +42,7 @@ def build(package):
 
     os.chroot(config['workdir'])
     os.chdir('/')
+    os.system('export PATH=/usr/bin:/usr/sbin')
     with tempfile.TemporaryDirectory() as tmpdirname:
         os.chdir(tmpdirname)
         infoFile = open('INFO', 'wb')
