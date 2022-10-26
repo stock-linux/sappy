@@ -192,9 +192,9 @@ def setup():
 def sync(verbose=True):
     os.makedirs('/etc/sappy/store/' + config['release'], exist_ok=True)
     os.chdir('/etc/sappy/store')
-    os.chdir(config['release'])
 
     for branch in config['branches']:
+        os.chdir(config['release'])
         if verbose:
             print("Syncing '" + branch + "' branch...")
         os.makedirs(branch, exist_ok=True)
