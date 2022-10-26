@@ -67,9 +67,9 @@ def build(package):
         os.environ['MAKEFLAGS'] = "-j1"
         os.chdir('work')
         print(os.listdir('..'))
-        cmd = 'tar -xf ../' + pkgInfo['source'].split()[-1].split('/')[-1]
-        out = os.system(cmd)
-        print(out)
+        if pkgInfo['source'].split()[-1] != 'N/A':
+            cmd = 'tar -xf ../' + pkgInfo['source'].split()[-1].split('/')[-1]
+            out = os.system(cmd)
         if len(os.listdir('.')) <= 1:
             os.chdir(os.listdir('.')[0])
         out = os.system(pkgInfo['build'])
