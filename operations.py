@@ -29,7 +29,13 @@ def build(package):
     os.remove('INFO')
     if 'makedeps' in pkgInfo:
         for d in pkgInfo['makedeps'].split():
-            os.system('ROOT=' + os.path.abspath(config['workdir']) + ' squirrel get ' + d + ' --chroot=' + config['workdir'] + ' -y')
+            real_root = os.open("/", os.O_PATH)
+            os.system('ROOT=' + os.path.abspath(config['workdir']) + ' squirrel get ' + d + ' --chroot=' + os.path.abspath(config['workdir']) + ' -y')
+            os.chdir(real_root)
+            os.chroot(".")
+            # Back to old root
+            os.close(real_root)
+            os.chdir(config['workdir'])
 
     real_root = os.open("/", os.O_PATH)
     # Mount the filesystems
@@ -136,7 +142,7 @@ def readIndex(branch):
 
 def setup():
     os.chdir(config['workdir'])
-    dirsToCreate = ['etc', 'dev', 'proc', 'sys', 'var', 'run', 'usr', 'tmp', 'usr/lib', 'usr/bin', 'usr/sbin']
+    dirsToCreate = ['etc', 'dev', 'proc', 'sys', 'var', 'run', 'usr', 'tmp', 'usr/lib', 'usr/bin', 'usr/sbin', 'etc/squirrel', 'usr/lib/python3.10/site-packages/certifi/']
     linksToDo = {'bin': 'usr/bin', 'lib': 'usr/lib', 'sbin': 'usr/sbin', 'lib64': 'usr/lib', 'usr/lib64': 'lib', 'etc/mtab': '/proc/self/mounts'}
     for dir in dirsToCreate:
         os.makedirs(dir)
@@ -145,6 +151,8 @@ def setup():
 
     shutil.copy(sys.path[0] + '/assets/group', 'etc/group')
     shutil.copy(sys.path[0] + '/assets/passwd', 'etc/passwd')
+    shutil.copy('/etc/squirrel/branches', 'etc/squirrel/branches')
+    shutil.copy('/usr/lib/python3.10/site-packages/certifi/cacert.pem', 'usr/lib/python3.10/site-packages/certifi/cacert.pem')
 
     chrootPackages = [
         'binutils',
@@ -181,8 +189,14 @@ def setup():
 
     installedPkgs = []
     for package in chrootPackages:
+        real_root = os.open("/", os.O_PATH)
         os.system('ROOT=' + config['workdir'] + ' squirrel get ' + package + ' --chroot=' + config['workdir'] + ' -y')
         installedPkgs.append(package)
+        os.chdir(real_root)
+        os.chroot(".")
+        # Back to old root
+        os.close(real_root)
+        os.chdir(config['workdir'])
     shutil.copy('/etc/hosts', config['workdir'] + '/etc/')
     shutil.copy('/etc/resolv.conf', config['workdir'] + '/etc/')
     shutil.copy('/etc/ssl/certs/ca-certificates.crt', config['workdir'] + '/etc/ssl/certs/')
