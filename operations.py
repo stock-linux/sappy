@@ -1,4 +1,4 @@
-import os, yaml, requests, tempfile, shutil, sys
+import os, yaml, requests, tempfile, shutil, sys, urllib, urllib.request
 from struct import pack
 
 def loadConfig(path):
@@ -8,7 +8,16 @@ def loadConfig(path):
 
     return yamlData
 
+def loadSquirrelConfig(path):
+    branches = {}
+    conf = open(path, 'r')
+    for line in conf:
+        branches[line.split()[0].strip()] = line.split()[1].strip()
+
+    return branches
+
 config = loadConfig('/etc/sappy/sappy.conf')
+squirrelConf = loadSquirrelConfig('/etc/squirrel/branches')
 
 def build(package):
     sync(False)
@@ -22,8 +31,9 @@ def build(package):
         exit(1)
 
     infoFile = open('INFO', 'wb')
-    req = requests.get('http://' + config['host'] + '/' + config['release'] + '/' + pkgBranch + '/' + pkgName)
-    infoFile.write(req.content)
+    req = urllib.request.urlopen(squirrelConf[pkgBranch] + '/' + pkgName)
+    infoData = req.read()
+    infoFile.write(infoData)
     infoFile.close()
     pkgInfo = readPkgInfo()
     os.remove('INFO')
@@ -52,8 +62,7 @@ def build(package):
     with tempfile.TemporaryDirectory() as tmpdirname:
         os.chdir(tmpdirname)
         infoFile = open('INFO', 'wb')
-        req = requests.get('http://' + config['host'] + '/' + config['release'] + '/' + pkgBranch + '/' + pkgName)
-        infoFile.write(req.content)
+        infoFile.write(infoData)
         infoFile.close()
         req.close()
         for source in pkgInfo['source'].split():
@@ -215,8 +224,8 @@ def sync(verbose=True):
         os.chdir(branch)
         # Get INDEX of branch
         index = open('INDEX', 'wb')
-        req = requests.get('http://' + config['host'] + '/' + config['release'] + '/' + branch + '/INDEX')
-        index.write(req.content)
+        req = urllib.request.urlopen(squirrelConf[branch] + '/INDEX')
+        index.write(req.read())
         req.close()
         index.close()
 
