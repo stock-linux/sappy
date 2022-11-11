@@ -66,6 +66,8 @@ def build(package):
         infoFile.close()
         req.close()
         for source in pkgInfo['source'].split():
+            if source == "N/A":
+                continue
             print('Downloading package source...')
             with requests.get(source.strip(), stream=True) as r:
                 r.raise_for_status()
@@ -85,7 +87,7 @@ def build(package):
         if pkgInfo['source'].split()[-1] != 'N/A':
             cmd = 'tar -xf ../' + pkgInfo['source'].split()[-1].split('/')[-1]
             out = os.system(cmd)
-        if len(os.listdir('.')) <= 1:
+        if len(os.listdir('.')) == 1:
             os.chdir(os.listdir('.')[0])
         out = os.system(pkgInfo['build'])
         if out != 0:
@@ -115,24 +117,25 @@ def readPkgInfo():
     for line in pkg_file.readlines():
         if line.startswith("#") or line == "" or line == "\n":
             continue
+
+        if ")" == line.strip():
+            record_build = False
+            continue
+
         if "(" not in line or line.split(': ')[0] == "description":
             if not record_build:
                 info[line.split(": ")[0].strip()] = line.split(": ")[1].strip()
             else:
-                if line.replace('\n','').strip() != ")" or (")" in line and opened_brackets > 1):
-                    info[bracket_name] += line
+                info[bracket_name] += line
         else:
-            record_build = True
-            opened_brackets += 1
-            if opened_brackets > 1:
+            if record_build:
                 info[bracket_name] += line
             else:
                 bracket_name = line.split("(")[0].strip()
+            record_build = True
             if not bracket_name in info:
-                info[bracket_name] = ""  
+                info[bracket_name] = ""
 
-        if ")" in line:
-            opened_brackets -= 1
     return info
 
 def readIndex(branch):
@@ -190,7 +193,8 @@ def setup():
         'linux-api-headers',
         'gcc-lib-c++',
         'zstd',
-        'pkg-config'
+        'pkg-config',
+        'libtool'
     ]
 
     fp = open('INDEX', 'w')
